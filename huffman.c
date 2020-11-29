@@ -27,6 +27,9 @@ typedef struct node_l {
     char data;
     struct node_l* next;
     struct node_l* prev;
+    struct node_l* left;
+    struct node_l* right;
+
 } node_l;
 
 typedef struct linkedList {
@@ -40,7 +43,7 @@ node_l * getNode(node_l ar[],char ch, int size);
 void printArray(node_l ar[],int size);
 node_l * readFile(FILE* file);
 bool isInList(linkedList* nodeList, char c);
-void insert(linkedList* lst, char data, int freq);
+void insert(linkedList* lst, node_l *node);
 linkedList* createOrderedList(node_l ar[]);
 void printList(linkedList* lst);
 
@@ -90,7 +93,7 @@ linkedList* createOrderedList(node_l ar[]) {
 	newList->tail = NULL;
 	int i = 0;
 	while((ar+i)->frequency > 0) {
-		insert(newList, ar[i].data, ar[i].frequency);
+		insert(newList, &ar[i]);
 		i++;
 	}
 	return newList;
@@ -185,37 +188,32 @@ node_l* getNode(node_l ar[],char ch, int size){
     return result;
 }
 
-void insert(linkedList* lst, char data, int freq) {
+void insert(linkedList* lst, node_l* node) {
     bool inserted = false;
-
-    node_l* newNode = (node_l*)malloc(sizeof(node_l));
-
-    newNode->data = data;
-    newNode->frequency = freq;
 
     node_l* fcurr;
 
     fcurr = lst->head;
 
-    while (fcurr != NULL && (fcurr->frequency <= newNode->frequency)) {
+    while (fcurr != NULL && (fcurr->frequency <= node->frequency)) {
         fcurr = fcurr->next;
     }
     // dont make it past head
     if (fcurr != NULL) {        // if list is not empty
         if (fcurr->prev == NULL) {
             // insert at front
-            newNode->next = fcurr;
-            fcurr->prev = newNode;
-            lst->head = newNode;
+            node->next = fcurr;
+            fcurr->prev = node;
+            lst->head = node;
             inserted = true;
             return;
         }
         else {
             //  inserting in middle
-            newNode->next = fcurr;
-            newNode->prev = fcurr->prev;
-            fcurr->prev->next = newNode;
-            fcurr->prev = newNode;
+            node->next = fcurr;
+            node->prev = fcurr->prev;
+            fcurr->prev->next = node;
+            fcurr->prev = node;
             inserted = true;
             return;
         }
@@ -225,15 +223,15 @@ void insert(linkedList* lst, char data, int freq) {
     // if lst is not empty
     // adding to tail
     if (lst->tail != NULL) {
-        lst->tail->next = newNode;
-        newNode->prev = lst->tail;
-        newNode->next = NULL;
+        lst->tail->next = node;
+        node->prev = lst->tail;
+        node->next = NULL;
         lst->tail = lst->tail->next;
     }
     else {      // also if lst is empty
-        lst->head = lst->tail = newNode;
-        newNode->next = NULL;
-        newNode->prev = NULL;
+        lst->head = lst->tail = node;
+        node->next = NULL;
+        node->prev = NULL;
     }
 }
 
