@@ -36,6 +36,7 @@ typedef struct linkedList {
     /* data */
     struct node_l* head;
     struct node_l* tail;
+    int size;
 } linkedList;
 
 bool contains(node_l ar[], char ch, int size);
@@ -46,6 +47,8 @@ bool isInList(linkedList* nodeList, char c);
 void insert(linkedList* lst, node_l *node);
 linkedList* createOrderedList(node_l ar[]);
 void printList(linkedList* lst);
+node_l *pqToTree(linkedList *pq);
+void display( node_l *ptr, int level);
 
 int main() {
     // if (argc != 4) {
@@ -80,10 +83,15 @@ int main() {
     node_l * ar = readFile(file);
     linkedList *pq = createOrderedList(ar); //priority list of huffman pairs
     printList(pq);
+    printf("Size: %d\n", pq->size);
     //create tree
-
+    while (pq->size > 1) {
+    	pqToTree(pq);
+    }
+    printf("After while\n");
+    printList(pq);
     // printList(ll);
-
+    display(pq->head, 0);
     return 0;
 }
 
@@ -115,8 +123,10 @@ bool isInList(linkedList* nodeList, char c) {
 
 node_l * dequeue(linkedList *nodeList) {
 	node_l *result = nodeList->head;
-	nodeList->head = nodeList->head = nodeList->head->next;
+	nodeList->head = nodeList->head->next;
 	result->next = NULL;
+	nodeList->size--;
+	if (nodeList->head==NULL) nodeList->tail = NULL;
 	return result;
 }
 
@@ -194,7 +204,7 @@ void insert(linkedList* lst, node_l* node) {
     node_l* fcurr;
 
     fcurr = lst->head;
-
+    lst->size++;
     while (fcurr != NULL && (fcurr->frequency <= node->frequency)) {
         fcurr = fcurr->next;
     }
@@ -217,6 +227,7 @@ void insert(linkedList* lst, node_l* node) {
             inserted = true;
             return;
         }
+
     }
 
     // now fcurr is pointing to NULL
@@ -233,6 +244,7 @@ void insert(linkedList* lst, node_l* node) {
         node->next = NULL;
         node->prev = NULL;
     }
+
 }
 
 void printList(linkedList* lst) {
@@ -252,8 +264,72 @@ node_t *nodeLtoT(node_l *node) {
 	return nodeT;
 }
 
-node_t *pqToTree(linkedList *pq) {
-	node_t *tree = (node_t *) malloc (sizeof(node_t));
+node_l *pqToTree(linkedList *pq) {
 
-	return tree;
+    node_l* leafOne = dequeue(pq);
+    node_l* leafTwo = dequeue(pq);
+
+    node_l* rootParent = (node_l *) malloc (sizeof(node_l));
+
+    rootParent->left = leafOne;
+    rootParent->right = leafTwo;
+
+    rootParent->data = '*';
+    rootParent->frequency = leafOne->frequency + leafTwo->frequency;
+//    printf("ROOT PARENT:  %c\n", rootParent->data);
+    insert(pq, rootParent);
+
+	return rootParent;
+}
+
+void display( node_l *ptr, int level)
+{
+	int i;
+	if(ptr == NULL )/*Base Case*/
+		return;
+	else
+    {
+		display(ptr->right, level+1);
+		printf("\n");
+		for (i=0; i<level; i++)
+				printf("    ");
+		printf("%c", ptr->data);
+		display(ptr->left, level+1);
+	}
+}/*End of display()*/
+
+char* encode_c(node_l* node,char target,char* encoding,bool* isFound){
+    //Base case
+
+    if(node == NULL){
+        *isFound = false;
+        return "";
+    }
+    //Root case
+    else if(node->data == '*'){
+
+        strcat(encoding,encode_c(node->left,target,encoding,isFound));
+        if(*isFound){
+            char tempStr[1]= "0";
+            strcat(tempStr,encoding);
+            strcpy(encoding, tempStr);
+        }
+        strcat(encoding,encode_c(node->right,target,encoding,isFound));
+        if(*isFound){
+            char tempStr[1]= "1";
+            strcat(tempStr,encoding);
+            strcpy(encoding, tempStr);
+        }
+    }else{
+        if(node->data == target){
+            *isFound = true;
+            return encoding;
+        }else{
+            *isFound = false;
+        }
+
+
+    }
+
+    return encoding;
 }
