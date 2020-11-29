@@ -3,6 +3,8 @@
  *
  * This file contains the main program,the structure of the Huffman node
  * and user interface for running your Huffman Encoder/Decoder. 
+ *
+ * @author Dennis, Cam, Tyler
  */
 
 #include <stdio.h>
@@ -13,15 +15,14 @@
 
 // A Huffman tree node
 typedef struct node_t {
-    int index;
     unsigned int frequency;    // weight
     char data;
     struct node_t* left;
     struct node_t* right;
 } node_t;
 
+//a linked list node
 typedef struct node_l {
-    int index;
     unsigned int frequency;    // weight
     char data;
     struct node_l* next;
@@ -35,7 +36,13 @@ typedef struct linkedList {
 } linkedList;
 
 bool contains(node_l ar[], char ch, int size);
-node_l* getNode(node_l ar[],char ch, int size);
+node_l * getNode(node_l ar[],char ch, int size);
+void printArray(node_l ar[],int size);
+node_l * readFile(FILE* file);
+bool isInList(linkedList* nodeList, char c);
+void insert(linkedList* lst, char data, int freq);
+linkedList* createOrderedList(node_l ar[]);
+void printList(linkedList* lst);
 
 int main() {
     // if (argc != 4) {
@@ -44,7 +51,7 @@ int main() {
     //             "<input file> <output file>\n");
     //     return 0;
     // }
-    
+
     // int i =0;
 
     // initialize();
@@ -62,109 +69,94 @@ int main() {
     linkedList* ll = (linkedList*)malloc(sizeof(linkedList));
     ll->head = NULL;
     ll->tail = NULL;
-    //insert(ll, 'c', 67);
-    //insert(ll, 'a', 1);
-    //insert(ll, 'v', 945);
-    //insert(ll, 'u', 5);
 
-    
     FILE* file = fopen("short.txt","r");
     if(file == NULL){
         perror("Not open");
     }
-    readFile(file);
-    
-    
+    node_l * ar = readFile(file);
+    linkedList *pq = createOrderedList(ar); //priority list of huffman pairs
+    printList(pq);
+    //create tree
+
     // printList(ll);
 
     return 0;
 }
 
-// linkedList* createOrderedList(FILE* f) {
-//     linkedList newList;
-//     FILE* file = fopen(f, "r");
-
-//     while(!feof(file)){     // while not enf of file
-//         char c = fgetc(file);       // c is the current character
-
-//         if (!isInList(newList, c)) {
-//             // insert(newList, c, freq)     // frequency
-//         }
-//         // if c is not in the list
-//             // 
-        
-//         // if c is in list
-//             // disregard
-//     }
-
-//     fclose(file);
-//     return newList;
-// }
-
-
-// bool isInList(linkedList* nodeList, char c) {
-//     node_l* curr = nodeList->head;
-
-//     bool result = false;
-
-//     while (curr != NULL && !result) {
-//         if (curr->data == c) {
-//             result = true;
-//         }
-//     }
-//     return result;
-// }
-int sizeFile(FILE* file){
-    char ch = fgetc(file);
-    int count = 0;
-    while(ch != EOF){
-        count += 1;
-        ch = fgetc(file);
-    }
-    return count;
+linkedList* createOrderedList(node_l ar[]) {
+	linkedList * newList = (linkedList *) malloc(sizeof(linkedList));
+	newList->head = NULL;
+	newList->tail = NULL;
+	int i = 0;
+	while((ar+i)->frequency > 0) {
+		insert(newList, ar[i].data, ar[i].frequency);
+		i++;
+	}
+	return newList;
 }
-void readFile(FILE* file){
-    char ch = fgetc(file);
-    int size = sizeFile(file);
-    int elements = 0;
-    node_l ar[size];
-    int sizeAr = sizeof(ar)/sizeof(ar[0]);
-    // printf("Size of array:%d",sizeAr);
-    int i = 0;
-    // node_l n1, n2, n3;
-    // n1.data = 'a';
-    // n2.data = 'p';
-    // n3.data = 'l';
-    // ar[0]= n1;
-    // ar[1]= n2;
-    // ar[2]= n3;
-    
-    printf("%d",contains(ar,'p',size));
-    // while(i < sizeAr){
 
-    //     // printf("%c",ch);
-    //     if(contains(ar,ch,sizeAr)){
-    //         //Increment node freq by 1
-    //         // printf("inside if contains\n");
-    //         node_l* nodeFound = getNode(ar,ch,sizeAr);
-    //         nodeFound->frequency += 1;
-    //     }else{//If new character not in array
-    //         // printf("New char\n");
-    //         node_l* newNode = (node_l*)malloc(sizeof(node_l));
-    //         newNode->data = ch;
-    //         newNode->frequency = 1;
-    //         ar[elements] = *newNode;
-    //         elements += 1;
-    //         // sizeAr = sizeof(ar)/sizeof(ar[0]);
 
-    //     }
-    //     ch = fgetc(file);
-    //     i += 1;
-    // }
-    printArray(ar, size);
+bool isInList(linkedList* nodeList, char c) {
+	node_l* curr = nodeList->head;
+
+	bool result = false;
+
+	while (curr != NULL && !result) {
+		if (curr->data == c) {
+			result = true;
+		}
+	}
+	return result;
+}
+
+node_l * dequeue(linkedList *nodeList) {
+	node_l *result = nodeList->head;
+	nodeList->head = nodeList->head = nodeList->head->next;
+	result->next = NULL;
+	return result;
+}
+
+//returns an array
+node_l * readFile(FILE* file){
+	char ch = fgetc(file);
+	int size = 52;
+	int elements = 0;
+	node_l * ar = (node_l *) malloc(sizeof(node_l)*52);
+	//initialize elements to zero
+	for (int i = 0; i < size; i++) {
+		ar[i].data = '0';
+		ar[i].frequency = 0;
+	}
+
+//    printf("%d",contains(ar,'p',size));
+	while(ch != EOF){
+
+		 // printf("%c",ch);
+		 if(contains(ar,ch,size)) {
+			 //Increment node freq by 1
+			 // printf("inside if contains\n");
+			 node_l* nodeFound = getNode(ar,ch,size);
+			 nodeFound->frequency += 1;
+		 } else{//If new character not in array
+			 // printf("New char\n");
+			 node_l* newNode = (node_l*)malloc(sizeof(node_l));
+			 newNode->data = ch;
+			 newNode->frequency = 1;
+			 ar[elements] = *newNode;
+			 elements += 1;
+			 // sizeAr = sizeof(ar)/sizeof(ar[0]);
+
+		 }
+		 ch = fgetc(file);
+//		 i += 1;
+	}
+//	printArray(ar, size);
+	return ar;
     // printf("Outside of while");
 }
-bool contains(node_l ar[], char ch,int size){  
+
+bool contains(node_l ar[], char ch,int size){
     bool result = false;
     for(int i = 0; i < size;i++){
         if(ar[i].data == ch){
@@ -177,9 +169,9 @@ bool contains(node_l ar[], char ch,int size){
 }
 void printArray(node_l ar[],int size){
     printf("In printArray, size:%d",size);
-    
+
     for(int i = 0; i < size;i++){
-        printf("{%c, %d}",ar[i].data,ar[i].frequency);
+        printf("{%c, %d} ",ar[i].data,ar[i].frequency);
     }
 }
 node_l* getNode(node_l ar[],char ch, int size){
@@ -188,19 +180,10 @@ node_l* getNode(node_l ar[],char ch, int size){
         if(ar[i].data == ch){
             result = &ar[i];
         }
-    
+
     }
     return result;
 }
-
-
-
-
-
-
-
-
-
 
 void insert(linkedList* lst, char data, int freq) {
     bool inserted = false;
@@ -237,7 +220,7 @@ void insert(linkedList* lst, char data, int freq) {
             return;
         }
     }
-    
+
     // now fcurr is pointing to NULL
     // if lst is not empty
     // adding to tail
@@ -261,4 +244,18 @@ void printList(linkedList* lst) {
         printf("{%c, %d}, \n", curr->data, curr->frequency);
         curr = curr->next;
     }
+}
+
+//creates a nodeT from a nodeL
+node_t *nodeLtoT(node_l *node) {
+	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
+	nodeT->data = node->data;
+	nodeT->frequency = node->frequency;
+	return nodeT;
+}
+
+node_t *pqToTree(linkedList *pq) {
+	node_t *tree = (node_t *) malloc (sizeof(node_t));
+
+	return tree;
 }
