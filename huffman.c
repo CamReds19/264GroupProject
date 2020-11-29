@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+
 // A Huffman tree node
 typedef struct node_t {
     int index;
@@ -33,7 +34,8 @@ typedef struct linkedList {
     struct node_l* tail;
 } linkedList;
 
-
+bool contains(node_l ar[], char ch, int size);
+node_l* getNode(node_l ar[],char ch, int size);
 
 int main() {
     // if (argc != 4) {
@@ -60,12 +62,20 @@ int main() {
     linkedList* ll = (linkedList*)malloc(sizeof(linkedList));
     ll->head = NULL;
     ll->tail = NULL;
-    insert(ll, 'c', 67);
-    insert(ll, 'a', 1);
-    insert(ll, 'v', 945);
-    insert(ll, 'u', 5);
+    //insert(ll, 'c', 67);
+    //insert(ll, 'a', 1);
+    //insert(ll, 'v', 945);
+    //insert(ll, 'u', 5);
 
-    printList(ll);
+    
+    FILE* file = fopen("short.txt","r");
+    if(file == NULL){
+        perror("Not open");
+    }
+    readFile(file);
+    
+    
+    // printList(ll);
 
     return 0;
 }
@@ -104,8 +114,84 @@ int main() {
 //     }
 //     return result;
 // }
+int sizeFile(FILE* file){
+    char ch = fgetc(file);
+    int count = 0;
+    while(ch != EOF){
+        count += 1;
+        ch = fgetc(file);
+    }
+    return count;
+}
+void readFile(FILE* file){
+    char ch = fgetc(file);
+    int size = sizeFile(file);
+    int elements = 0;
+    node_l ar[size];
+    int sizeAr = sizeof(ar)/sizeof(ar[0]);
+    // printf("Size of array:%d",sizeAr);
+    int i = 0;
+    // node_l n1, n2, n3;
+    // n1.data = 'a';
+    // n2.data = 'p';
+    // n3.data = 'l';
+    // ar[0]= n1;
+    // ar[1]= n2;
+    // ar[2]= n3;
+    
+    printf("%d",contains(ar,'p',size));
+    // while(i < sizeAr){
 
+    //     // printf("%c",ch);
+    //     if(contains(ar,ch,sizeAr)){
+    //         //Increment node freq by 1
+    //         // printf("inside if contains\n");
+    //         node_l* nodeFound = getNode(ar,ch,sizeAr);
+    //         nodeFound->frequency += 1;
+    //     }else{//If new character not in array
+    //         // printf("New char\n");
+    //         node_l* newNode = (node_l*)malloc(sizeof(node_l));
+    //         newNode->data = ch;
+    //         newNode->frequency = 1;
+    //         ar[elements] = *newNode;
+    //         elements += 1;
+    //         // sizeAr = sizeof(ar)/sizeof(ar[0]);
 
+    //     }
+    //     ch = fgetc(file);
+    //     i += 1;
+    // }
+    printArray(ar, size);
+    // printf("Outside of while");
+}
+bool contains(node_l ar[], char ch,int size){  
+    bool result = false;
+    for(int i = 0; i < size;i++){
+        if(ar[i].data == ch){
+            result = true;
+            break;
+        }
+
+    }
+    return result;
+}
+void printArray(node_l ar[],int size){
+    printf("In printArray, size:%d",size);
+    
+    for(int i = 0; i < size;i++){
+        printf("{%c, %d}",ar[i].data,ar[i].frequency);
+    }
+}
+node_l* getNode(node_l ar[],char ch, int size){
+    node_l * result = NULL;
+    for(int i = 0; i < size;i++){
+        if(ar[i].data == ch){
+            result = &ar[i];
+        }
+    
+    }
+    return result;
+}
 
 
 
