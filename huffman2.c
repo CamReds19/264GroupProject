@@ -27,6 +27,8 @@ typedef struct node_l {
     char data;
     struct node_l* next;
     struct node_l* prev;
+    struct node_l* left;
+    struct node_l* right;
 } node_l;
 
 typedef struct linkedList {
@@ -40,7 +42,7 @@ node_l * getNode(node_l ar[],char ch, int size);
 void printArray(node_l ar[],int size);
 node_l * readFile(FILE* file);
 bool isInList(linkedList* nodeList, char c);
-void insert(linkedList* lst, char data, int freq);
+void insert(linkedList* lst, node_l* node);
 linkedList* createOrderedList(node_l ar[]);
 void printList(linkedList* lst);
 
@@ -70,7 +72,7 @@ int main() {
     ll->head = NULL;
     ll->tail = NULL;
 
-    FILE* file = fopen("medium.txt","r");
+    FILE* file = fopen("C:/Users/camre/OneDrive/Documents/Laurier/4th/CP264/groupProject/Starter-kit/Starter-kit/short.txt","r");
     if(file == NULL){
         perror("Not open");
     }
@@ -90,7 +92,7 @@ linkedList* createOrderedList(node_l ar[]) {
 	newList->tail = NULL;
 	int i = 0;
 	while((ar+i)->frequency > 0) {
-		insert(newList, ar[i].data, ar[i].frequency);
+		insert(newList, &ar[i]);
 		i++;
 	}
 	return newList;
@@ -185,37 +187,39 @@ node_l* getNode(node_l ar[],char ch, int size){
     return result;
 }
 
-void insert(linkedList* lst, char data, int freq) {
+void insert(linkedList* lst, node_l* node) {
     bool inserted = false;
 
-    node_l* newNode = (node_l*)malloc(sizeof(node_l));
+    // node_l* newNode = (node_l*)malloc(sizeof(node_l));
 
-    newNode->data = data;
-    newNode->frequency = freq;
+    // newNode->data = node->data;
+    // newNode->frequency = node->freq;
+
+    printf("%c", node->data);
 
     node_l* fcurr;
 
     fcurr = lst->head;
 
-    while (fcurr != NULL && (fcurr->frequency <= newNode->frequency)) {
+    while (fcurr != NULL && (fcurr->frequency <= node->frequency)) {
         fcurr = fcurr->next;
     }
     // dont make it past head
     if (fcurr != NULL) {        // if list is not empty
         if (fcurr->prev == NULL) {
             // insert at front
-            newNode->next = fcurr;
-            fcurr->prev = newNode;
-            lst->head = newNode;
+            node->next = fcurr;
+            fcurr->prev = node;
+            lst->head = node;
             inserted = true;
             return;
         }
         else {
             //  inserting in middle
-            newNode->next = fcurr;
-            newNode->prev = fcurr->prev;
-            fcurr->prev->next = newNode;
-            fcurr->prev = newNode;
+            node->next = fcurr;
+            node->prev = fcurr->prev;
+            fcurr->prev->next = node;
+            fcurr->prev = node;
             inserted = true;
             return;
         }
@@ -225,15 +229,15 @@ void insert(linkedList* lst, char data, int freq) {
     // if lst is not empty
     // adding to tail
     if (lst->tail != NULL) {
-        lst->tail->next = newNode;
-        newNode->prev = lst->tail;
-        newNode->next = NULL;
+        lst->tail->next = node;
+        node->prev = lst->tail;
+        node->next = NULL;
         lst->tail = lst->tail->next;
     }
     else {      // also if lst is empty
-        lst->head = lst->tail = newNode;
-        newNode->next = NULL;
-        newNode->prev = NULL;
+        lst->head = lst->tail = node;
+        node->next = NULL;
+        node->prev = NULL;
     }
 }
 
@@ -247,16 +251,28 @@ void printList(linkedList* lst) {
 }
 
 //creates a nodeT from a nodeL
-node_t *nodeLtoT(node_l *node) {
-	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
-	nodeT->data = node->data;
-	nodeT->frequency = node->frequency;
-	return nodeT;
-}
+// node_t *nodeLtoT(node_l *node) {
+// 	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
+// 	nodeT->data = node->data;
+// 	nodeT->frequency = node->frequency;
+// 	return nodeT;
+// }
 
 node_t *pqToTree(linkedList *pq) {
 	node_t *tree = (node_t *) malloc (sizeof(node_t));
 
+    node_l* leafOne = dequeue(pq);
+    node_l* leafTwo = dequeue(pq);
+
+    node_l* rootParent = (node_l *) malloc (sizeof(node_l));
+
+    rootParent->left = leafOne;
+    rootParent->right = leafTwo;
+
+    rootParent->data = '*';
+    rootParent->frequency = leafOne->frequency + leafTwo->frequency;
+    printf("ROOT PARENT:  %c", rootParent->data);
+    insert(pq, rootParent);
+
 	return tree;
 }
-\
