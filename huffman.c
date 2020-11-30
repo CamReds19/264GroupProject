@@ -4,7 +4,7 @@
  * This file contains the main program,the structure of the Huffman node
  * and user interface for running your Huffman Encoder/Decoder. 
  *
- * @author Dennis, Cam, Tyler, Melissa, Prithvi
+ * @author Dennis, Cam, Tyler, Melissa
  */
 
 #include <stdio.h>
@@ -39,6 +39,7 @@ typedef struct linkedList {
     int size;
 } linkedList;
 
+// Forward Declarations
 bool contains(node_l ar[], char ch, int size);
 node_l * getNode(node_l ar[],char ch, int size);
 void printArray(node_l ar[],int size);
@@ -50,55 +51,59 @@ void printList(linkedList* lst);
 node_l *pqToTree(linkedList *pq);
 void display( node_l *ptr, int level);
 void encode_c(node_l* node, char* encoding);
+char* decode(node_l* node, char* decodeStr);
+FILE* makeFileWrite(char* fName);
+FILE* makeFileRead(char* fName);
 
-int main() {
-    // if (argc != 4) {
-    //     fprintf(stderr,
-    //             "USAGE: ./huffman [encode | decode] "
-    //             "<input file> <output file>\n");
-    //     return 0;
-    // }
 
-    // int i =0;
+int main(int argc, char **argv) {
+    if (argc != 4) {
+        fprintf(stderr,
+                "USAGE: ./huffman [encode | decode] "
+                "<input file> <output file>\n");
+        return 0;
+    }
 
-    // initialize();
+    int i =0;
 
-    // if (strcmp(argv[1], "encode") == 0)
-    //     encode(argv[2], argv[3]);
-    // else if (strcmp(argv[1], "decode") == 0)
-    //     decode(argv[2], argv[3]);
-    // else
-    //     fprintf(stderr,
-    //             "USAGE: ./huffman [encode | decode] "
-    //             "<input file> <output file>\n");
+    bool treeInfo = false;
 
-    // free_memory();
     linkedList* ll = (linkedList*)malloc(sizeof(linkedList));
     ll->head = NULL;
     ll->tail = NULL;
 
-    FILE* file = fopen("short.txt","r");
-    if(file == NULL){
-        perror("Not open");
+    if (strcmp(argv[1], "encode") == 0) {
+        FILE* file = makeFileRead(argv[2]); // opens text file to read
+        FILE* outFile = makeFileWrite(argv[3]); // creates output text file with given file name
+        node_l * ar = readFile(file);           // read thru contents of file adding to array
+        linkedList *pq = createOrderedList(ar); //priority list of huffman pairs from array
+        while (pq->size > 1) {
+            pqToTree(pq);   // pq to tree while pq has elements
+        }
+        display(pq->head, 0);   // testing display tree function
+        char encoding[100] = "";
+        encode_c(pq->head, encoding);   // requires tree root and encoding string
+        treeInfo = true;            // if we encoded, we have information to decode
+        // encode_c(argv[2], argv[3]);
     }
-    node_l * ar = readFile(file);
-    linkedList *pq = createOrderedList(ar); //priority list of huffman pairs
-    printList(pq);
-    printf("Size: %d\n", pq->size);
-    //create tree
-    while (pq->size > 1) {
-    	pqToTree(pq);
-    }
-    printf("After while\n");
-    printList(pq);
-    // printList(ll);
-    display(pq->head, 0);
-    char encoding[100] = "";
-    encode_c(pq->head, encoding);
-//    printf("test");
+    else if (strcmp(argv[1], "decode") == 0)
+        if (treeInfo) {
+            decode(argv[2], argv[3]);
+        }
+        else {
+            printf("Must encode before decode");
+        }
+    else
+        fprintf(stderr,
+                "USAGE: ./huffman [encode | decode] "
+                "<input file> <output file>\n");
+
+
+    // printf("%s",decode(pq->head,"011001010111011100"));
 }
 
 linkedList* createOrderedList(node_l ar[]) {
+    // Creates and frequency ordered list
 	linkedList * newList = (linkedList *) malloc(sizeof(linkedList));
 	newList->head = NULL;
 	newList->tail = NULL;
@@ -112,6 +117,7 @@ linkedList* createOrderedList(node_l ar[]) {
 
 
 bool isInList(linkedList* nodeList, char c) {
+    // returns true if 'c' is in Linked list
 	node_l* curr = nodeList->head;
 
 	bool result = false;
@@ -125,6 +131,7 @@ bool isInList(linkedList* nodeList, char c) {
 }
 
 node_l * dequeue(linkedList *nodeList) {
+    // Dequeue will always be 2 smallest elements in linked list
 	node_l *result = nodeList->head;
 	nodeList->head = nodeList->head->next;
 	result->next = NULL;
@@ -145,34 +152,28 @@ node_l * readFile(FILE* file){
 		ar[i].frequency = 0;
 	}
 
-//    printf("%d",contains(ar,'p',size));
 	while(ch != EOF){
 
-		 // printf("%c",ch);
 		 if(contains(ar,ch,size)) {
 			 //Increment node freq by 1
-			 // printf("inside if contains\n");
 			 node_l* nodeFound = getNode(ar,ch,size);
 			 nodeFound->frequency += 1;
 		 } else{//If new character not in array
-			 // printf("New char\n");
 			 node_l* newNode = (node_l*)malloc(sizeof(node_l));
 			 newNode->data = ch;
 			 newNode->frequency = 1;
+             // update newNode data and frequency and add to ar array
 			 ar[elements] = *newNode;
 			 elements += 1;
-			 // sizeAr = sizeof(ar)/sizeof(ar[0]);
 
 		 }
 		 ch = fgetc(file);
-//		 i += 1;
 	}
-//	printArray(ar, size);
 	return ar;
-    // printf("Outside of while");
 }
 
 bool contains(node_l ar[], char ch,int size){
+    // returns true if array ar contains char 'ch'
     bool result = false;
     for(int i = 0; i < size;i++){
         if(ar[i].data == ch){
@@ -183,25 +184,31 @@ bool contains(node_l ar[], char ch,int size){
     }
     return result;
 }
+
+
 void printArray(node_l ar[],int size){
+    // test function to print contents of array
     printf("In printArray, size:%d",size);
 
     for(int i = 0; i < size;i++){
         printf("{%c, %d} ",ar[i].data,ar[i].frequency);
     }
 }
+
+
 node_l* getNode(node_l ar[],char ch, int size){
     node_l * result = NULL;
     for(int i = 0; i < size;i++){
         if(ar[i].data == ch){
             result = &ar[i];
         }
-
     }
     return result;
 }
 
 void insert(linkedList* lst, node_l* node) {
+    // inserted designed to handle all priority sorting within the insert
+    // all elements inserted will be inserted in their proper position
     bool inserted = false;
 
     node_l* fcurr;
@@ -251,6 +258,7 @@ void insert(linkedList* lst, node_l* node) {
 }
 
 void printList(linkedList* lst) {
+    // helper function to print contents of list
     node_l *curr = lst->head;
 
     while (curr != NULL) {
@@ -260,14 +268,17 @@ void printList(linkedList* lst) {
 }
 
 //creates a nodeT from a nodeL
-node_t *nodeLtoT(node_l *node) {
-	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
-	nodeT->data = node->data;
-	nodeT->frequency = node->frequency;
-	return nodeT;
-}
+// node_t *nodeLtoT(node_l *node) {
+// 	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
+// 	nodeT->data = node->data;
+// 	nodeT->frequency = node->frequency;
+// 	return nodeT;
+// }
 
 node_l *pqToTree(linkedList *pq) {
+    // handles taking 2 smallest values from pq (linked list) into our huffman tree
+    // updates the parents nodes accordingly
+    // returns a tree with pq values as leaf nodes within huffman tree
 
     node_l* leafOne = dequeue(pq);
     node_l* leafTwo = dequeue(pq);
@@ -278,17 +289,19 @@ node_l *pqToTree(linkedList *pq) {
     rootParent->right = leafTwo;
 
     rootParent->data = '*';
+    // parent frequency sum of child frequencies
     rootParent->frequency = leafOne->frequency + leafTwo->frequency;
-//    printf("ROOT PARENT:  %c\n", rootParent->data);
     insert(pq, rootParent);
 
 	return rootParent;
 }
 
 void display( node_l *ptr, int level)
+// taken from previous labs
+// helper code to display tree structure
 {
 	int i;
-	if(ptr == NULL )/*Base Case*/
+	if(ptr == NULL )// Base Case
 		return;
 	else
     {
@@ -299,11 +312,10 @@ void display( node_l *ptr, int level)
 		printf("%c", ptr->data);
 		display(ptr->left, level+1);
 	}
-}/*End of display()*/
+}
 
 void encode_c(node_l* node, char* encoding){
     //Base case
-//	printf("test");
 	if (node==NULL) {
 		return;
 	}
@@ -312,7 +324,61 @@ void encode_c(node_l* node, char* encoding){
 		printf("%s", encoding);
 	}
 	char str0[100] = "0";
-//	char str1[100] = "1";
+	char str1[100] = "1";
     encode_c(node->left, strcat(str0, encoding));
-//    encode_c(node->right, strcat(str1, encoding));
+    encode_c(node->right, strcat(str1, encoding));
+}
+
+char* decode(node_l* root, char decodeStr[]){
+    char* result = (char*)malloc(sizeof(char)*100);
+    node_l* temp = root;
+    
+    int size = strlen(decodeStr);
+    // do for each char in decodeStr
+    for(int i = 0; i <size;i++){
+        
+        if(temp->data == '*'){
+            // not at a leaf node
+            if(decodeStr[i] == '1'){
+                // if we read a 1, go right
+                temp = temp->right;
+                if(temp->data != '*'){
+                    // now at a leaf node
+                    strcat(result,&temp->data);
+                    temp = root;
+                }
+            }else{
+              
+                temp = temp->left;
+                if(temp->data != '*'){
+                    // now at leaf node
+                    strcat(result,&temp->data);
+                    // concatenate the data from value at temp with our resulting decoded string
+                    temp = root;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+
+FILE* makeFileWrite(char* fName){
+    // creates a new output file given user input
+    // returns a newly created file already open
+    FILE* fp = fopen(fName,"w");
+    if(fp == NULL){
+        perror("Not open");
+    }
+    return fp;    
+}
+
+FILE* makeFileRead(char* fName){
+    // creates a new output file given user input
+    // returns a newly created file already open
+    FILE* fp = fopen(fName,"r");
+    if(fp == NULL){
+        perror("Not open");
+    }
+    return fp;    
 }
