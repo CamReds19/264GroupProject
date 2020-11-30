@@ -1,5 +1,6 @@
 /*
  * CP 264 Huffman Coding
+ * Updated as of November 30th 2020
  *
  * This file contains the main program,the structure of the Huffman node
  * and user interface for running your Huffman Encoder/Decoder. 
