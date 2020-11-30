@@ -49,6 +49,7 @@ linkedList* createOrderedList(node_l ar[]);
 void printList(linkedList* lst);
 node_l *pqToTree(linkedList *pq);
 void display( node_l *ptr, int level);
+void encode_c(node_l* node, char* encoding);
 
 int main() {
     // if (argc != 4) {
@@ -92,7 +93,9 @@ int main() {
     printList(pq);
     // printList(ll);
     display(pq->head, 0);
-    return 0;
+
+    encode_c(pq->head, "");
+//    printf("test");
 }
 
 linkedList* createOrderedList(node_l ar[]) {
@@ -298,38 +301,15 @@ void display( node_l *ptr, int level)
 	}
 }/*End of display()*/
 
-char* encode_c(node_l* node,char target,char* encoding,bool* isFound){
+void encode_c(node_l* node, char* encoding){
     //Base case
-
-    if(node == NULL){
-        *isFound = false;
-        return "";
-    }
-    //Root case
-    else if(node->data == '*'){
-
-        strcat(encoding,encode_c(node->left,target,encoding,isFound));
-        if(*isFound){
-            char tempStr[1]= "0";
-            strcat(tempStr,encoding);
-            strcpy(encoding, tempStr);
-        }
-        strcat(encoding,encode_c(node->right,target,encoding,isFound));
-        if(*isFound){
-            char tempStr[1]= "1";
-            strcat(tempStr,encoding);
-            strcpy(encoding, tempStr);
-        }
-    }else{
-        if(node->data == target){
-            *isFound = true;
-            return encoding;
-        }else{
-            *isFound = false;
-        }
-
-
-    }
-
-    return encoding;
+//	printf("test");
+	if (node==NULL) {
+		return;
+	}
+	if (node->data!='*') {
+		printf("%s", encoding);
+	}
+    encode_c(node->left, "0");
+    encode_c(node->right, "1");
 }
