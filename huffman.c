@@ -4,7 +4,7 @@
  * This file contains the main program,the structure of the Huffman node
  * and user interface for running your Huffman Encoder/Decoder. 
  *
- * @author Dennis, Cam, Tyler
+ * @author Dennis, Cam, Tyler, Melissa, Prithvi
  */
 
 #include <stdio.h>
