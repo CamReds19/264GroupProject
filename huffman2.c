@@ -29,12 +29,14 @@ typedef struct node_l {
     struct node_l* prev;
     struct node_l* left;
     struct node_l* right;
+
 } node_l;
 
 typedef struct linkedList {
     /* data */
     struct node_l* head;
     struct node_l* tail;
+    int size;
 } linkedList;
 
 bool contains(node_l ar[], char ch, int size);
@@ -42,48 +44,57 @@ node_l * getNode(node_l ar[],char ch, int size);
 void printArray(node_l ar[],int size);
 node_l * readFile(FILE* file);
 bool isInList(linkedList* nodeList, char c);
-void insert(linkedList* lst, node_l* node);
+void insert(linkedList* lst, node_l *node);
 linkedList* createOrderedList(node_l ar[]);
 void printList(linkedList* lst);
+node_l *pqToTree(linkedList *pq);
+void display( node_l *ptr, int level);
+void encode_c(node_l* node, char* encoding);
+char* decode(node_l* node, char* decodeStr);
 
-int main() {
-    // if (argc != 4) {
-    //     fprintf(stderr,
-    //             "USAGE: ./huffman [encode | decode] "
-    //             "<input file> <output file>\n");
-    //     return 0;
-    // }
+int main(int argc, char **argv) {
+    if (argc != 4) {
+        fprintf(stderr,
+                "USAGE: ./huffman [encode | decode] "
+                "<input file> <output file>\n");
+        return 0;
+    }
 
-    // int i =0;
+    int i =0;
 
-    // initialize();
+    if (strcmp(argv[1], "encode") == 0);
+        // encode(argv[2], argv[3]);
+    else if (strcmp(argv[1], "decode") == 0)
+        decode(argv[2], argv[3]);
+    else
+        fprintf(stderr,
+                "USAGE: ./huffman [encode | decode] "
+                "<input file> <output file>\n");
 
-    // if (strcmp(argv[1], "encode") == 0)
-    //     encode(argv[2], argv[3]);
-    // else if (strcmp(argv[1], "decode") == 0)
-    //     decode(argv[2], argv[3]);
-    // else
-    //     fprintf(stderr,
-    //             "USAGE: ./huffman [encode | decode] "
-    //             "<input file> <output file>\n");
-
-    // free_memory();
     linkedList* ll = (linkedList*)malloc(sizeof(linkedList));
     ll->head = NULL;
     ll->tail = NULL;
 
-    FILE* file = fopen("C:/Users/camre/OneDrive/Documents/Laurier/4th/CP264/groupProject/Starter-kit/Starter-kit/short.txt","r");
+    FILE* file = fopen("short.txt","r");
     if(file == NULL){
         perror("Not open");
     }
     node_l * ar = readFile(file);
     linkedList *pq = createOrderedList(ar); //priority list of huffman pairs
-    printList(pq);
+    //printList(pq);
+    // printf("Size: %d\n", pq->size);
     //create tree
-
+    while (pq->size > 1) {
+    	pqToTree(pq);
+    }
+    // printf("After while\n");
+    // printList(pq);
     // printList(ll);
-
-    return 0;
+    // display(pq->head, 0);
+    // char encoding[100] = "";
+    // encode_c(pq->head, encoding);
+//    printf("test");
+    printf("%s",decode(pq->head,"011001010111011100"));
 }
 
 linkedList* createOrderedList(node_l ar[]) {
@@ -114,8 +125,10 @@ bool isInList(linkedList* nodeList, char c) {
 
 node_l * dequeue(linkedList *nodeList) {
 	node_l *result = nodeList->head;
-	nodeList->head = nodeList->head = nodeList->head->next;
+	nodeList->head = nodeList->head->next;
 	result->next = NULL;
+	nodeList->size--;
+	if (nodeList->head==NULL) nodeList->tail = NULL;
 	return result;
 }
 
@@ -190,17 +203,10 @@ node_l* getNode(node_l ar[],char ch, int size){
 void insert(linkedList* lst, node_l* node) {
     bool inserted = false;
 
-    // node_l* newNode = (node_l*)malloc(sizeof(node_l));
-
-    // newNode->data = node->data;
-    // newNode->frequency = node->freq;
-
-    printf("%c", node->data);
-
     node_l* fcurr;
 
     fcurr = lst->head;
-
+    lst->size++;
     while (fcurr != NULL && (fcurr->frequency <= node->frequency)) {
         fcurr = fcurr->next;
     }
@@ -223,6 +229,7 @@ void insert(linkedList* lst, node_l* node) {
             inserted = true;
             return;
         }
+
     }
 
     // now fcurr is pointing to NULL
@@ -239,6 +246,7 @@ void insert(linkedList* lst, node_l* node) {
         node->next = NULL;
         node->prev = NULL;
     }
+
 }
 
 void printList(linkedList* lst) {
@@ -251,15 +259,14 @@ void printList(linkedList* lst) {
 }
 
 //creates a nodeT from a nodeL
-// node_t *nodeLtoT(node_l *node) {
-// 	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
-// 	nodeT->data = node->data;
-// 	nodeT->frequency = node->frequency;
-// 	return nodeT;
-// }
+node_t *nodeLtoT(node_l *node) {
+	node_t *nodeT = (node_t *) malloc(sizeof(node_t));
+	nodeT->data = node->data;
+	nodeT->frequency = node->frequency;
+	return nodeT;
+}
 
-node_t *pqToTree(linkedList *pq) {
-	node_t *tree = (node_t *) malloc (sizeof(node_t));
+node_l *pqToTree(linkedList *pq) {
 
     node_l* leafOne = dequeue(pq);
     node_l* leafTwo = dequeue(pq);
@@ -271,8 +278,77 @@ node_t *pqToTree(linkedList *pq) {
 
     rootParent->data = '*';
     rootParent->frequency = leafOne->frequency + leafTwo->frequency;
-    printf("ROOT PARENT:  %c", rootParent->data);
+//    printf("ROOT PARENT:  %c\n", rootParent->data);
     insert(pq, rootParent);
 
-	return tree;
+	return rootParent;
 }
+
+void display( node_l *ptr, int level)
+{
+	int i;
+	if(ptr == NULL )/*Base Case*/
+		return;
+	else
+    {
+		display(ptr->right, level+1);
+		printf("\n");
+		for (i=0; i<level; i++)
+				printf("    ");
+		printf("%c", ptr->data);
+		display(ptr->left, level+1);
+	}
+}/*End of display()*/
+
+void encode_c(node_l* node, char* encoding){
+    //Base case
+//	printf("test");
+	if (node==NULL) {
+		return;
+	}
+	//if leaf node
+	if (node->data!='*') {
+		printf("%s", encoding);
+	}
+	char str0[100] = "0";
+	char str1[100] = "1";
+    encode_c(node->left, strcat(str0, encoding));
+    encode_c(node->right, strcat(str1, encoding));
+}
+char* decode(node_l* root, char decodeStr[]){
+    char* result = (char*)malloc(sizeof(char)*100);
+    node_l* temp = root;
+    
+    int size = strlen(decodeStr);
+    // printf("%d",size);
+    for(int i = 0; i <size;i++){
+        
+        if(temp->data == '*'){
+            if(decodeStr[i] == '1'){
+                // printf("%c",temp->data);
+                temp = temp->right;
+                if(temp->data != '*'){
+                    strcat(result,&temp->data);
+                    temp = root;
+                }
+            }else{
+              
+                temp = temp->left;
+                if(temp->data != '*'){
+                    strcat(result,&temp->data);
+                    temp = root;
+                }
+                // printf("%c",temp->data);
+            }
+        }
+
+        
+    }
+    
+    return result;
+}
+FILE* makeFile(char* fName){
+    FILE* fp = fopen(fName,"w");
+    return fp;    
+}
+
