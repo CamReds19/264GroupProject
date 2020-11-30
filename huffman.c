@@ -15,7 +15,11 @@
  * The generated tree can then be used to encode by traversing the tree to the leaf nodes, and decode an encoding by moving left(0) and right(1)
  * throughout the tree to the intended leaf node.
  * 
- * @author Dennis, Cam, Tyler, Melissa
+ * 
+ * @authors: Dennis Au: 201421820
+ *           Cam Redmond: 
+ *           Tyler Price: 180965180
+ *           Melissa Pinto: 190647880
  */
 
 #include <stdio.h>
