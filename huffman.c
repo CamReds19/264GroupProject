@@ -93,8 +93,8 @@ int main() {
     printList(pq);
     // printList(ll);
     display(pq->head, 0);
-
-    encode_c(pq->head, "");
+    char encoding[100] = "";
+    encode_c(pq->head, encoding);
 //    printf("test");
 }
 
@@ -307,9 +307,12 @@ void encode_c(node_l* node, char* encoding){
 	if (node==NULL) {
 		return;
 	}
+	//if leaf node
 	if (node->data!='*') {
 		printf("%s", encoding);
 	}
-    encode_c(node->left, "0");
-    encode_c(node->right, "1");
+	char str0[100] = "0";
+//	char str1[100] = "1";
+    encode_c(node->left, strcat(str0, encoding));
+//    encode_c(node->right, strcat(str1, encoding));
 }
